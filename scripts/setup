@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+# set -o xtrace
+
+__dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+__root="$(cd "$(dirname "${__dir}")" && pwd)"
+
+if [ -z "${1:-}" ]; then
+    echo "USAGE: ${0} day"
+    echo
+    echo "day               The day number to set up"
+    exit 1;
+fi
+
+DAY=$1
+DAY_PATH="${__root}/solutions/day-${DAY}";
+
+if [ -e "${DAY_PATH}" ]; then
+    echo "File already exists at ${DAY_PATH}"
+    exit 1
+fi
+
+cargo new --name "advent-of-code-day-${DAY}" "${DAY_PATH}"
+
