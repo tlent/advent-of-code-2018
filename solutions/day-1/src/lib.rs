@@ -8,7 +8,25 @@ pub fn sum(numbers: &[i32]) -> i32 {
   numbers.iter().sum()
 }
 
-// My solution after learning from others (~20% faster and much more readable)
+// Third solution after learning from /u/zSync1's solution using find_map and HashSet::replace
+// Apparently 10% slower than the second solution, but much cleaner.
+// No Cell is needed because all borrows are in the same closure.
+// find_map combines find and map: it finds the first result that is not None and maps it using
+// the provided closure.
+pub fn find_repeat_result(numbers: &[i32]) -> i32 {
+  let mut past_results = HashSet::new();
+  let mut frequency = 0;
+  numbers
+    .iter()
+    .cycle()
+    .find_map(|number| {
+      frequency += number;
+      past_results.replace(frequency)
+    }).expect("No solution found")
+}
+
+// Second solution after learning from others (~20% faster and much more readable)
+// Takes approximately 11 ms on my input
 //
 // The Cell is necessary because take_while has the value borrowed immutably while the loop tries
 // to borrow it mutably. Values cannot be borrowed as mutable while they are borrowed as immutable.
@@ -27,7 +45,7 @@ pub fn sum(numbers: &[i32]) -> i32 {
 //
 // using for_each here was slightly faster than using a for..in loop
 // using nightly rust and the unstable feature cell_update had no performance benefit
-pub fn find_repeat_result(numbers: &[i32]) -> i32 {
+pub fn second_find_repeat_result(numbers: &[i32]) -> i32 {
   let mut past_results = HashSet::new();
   let frequency = Cell::new(0);
   numbers
@@ -39,6 +57,7 @@ pub fn find_repeat_result(numbers: &[i32]) -> i32 {
 }
 
 // My solution before looking at others
+// Takes 15-20 ms on my input
 pub fn original_find_repeat_result(numbers: &[i32]) -> i32 {
   let mut past_results = HashSet::new();
   let mut result = 0;
