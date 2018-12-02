@@ -23,7 +23,7 @@ pub fn calculate_checksum(ids: &[&str]) -> i32 {
 }
 
 pub fn find_similar_id_match(ids: &[&str]) -> String {
-  let mut ids = ids.to_owned().clone();
+  let mut ids = ids.to_owned();
   ids.sort_unstable();
   let (id_a, id_b) = ids
     .iter()
