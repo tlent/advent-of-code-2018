@@ -16,13 +16,15 @@ pub fn sum(numbers: &[i32]) -> i32 {
 pub fn find_repeat_result(numbers: &[i32]) -> i32 {
   let mut past_results = HashSet::new();
   let mut frequency = 0;
+  past_results.insert(0);
   numbers
     .iter()
     .cycle()
     .find_map(|number| {
       frequency += number;
       past_results.replace(frequency)
-    }).expect("No solution found")
+    })
+    .expect("No solution found")
 }
 
 // Second solution after learning from others (~20% faster and much more readable)
