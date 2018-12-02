@@ -94,5 +94,15 @@ mod tests {
     assert_eq!(find_repeat_result(&[3, 3, 4, -2, -4]), 10);
     assert_eq!(find_repeat_result(&[-6, 3, 8, 5, -6]), 5);
     assert_eq!(find_repeat_result(&[7, 7, -2, -7, -4]), 14);
+
+    assert_eq!(second_find_repeat_result(&[1, -1]), 0);
+    assert_eq!(second_find_repeat_result(&[3, 3, 4, -2, -4]), 10);
+    assert_eq!(second_find_repeat_result(&[-6, 3, 8, 5, -6]), 5);
+    assert_eq!(second_find_repeat_result(&[7, 7, -2, -7, -4]), 14);
+
+    assert_eq!(original_find_repeat_result(&[1, -1]), 0);
+    assert_eq!(original_find_repeat_result(&[3, 3, 4, -2, -4]), 10);
+    assert_eq!(original_find_repeat_result(&[-6, 3, 8, 5, -6]), 5);
+    assert_eq!(original_find_repeat_result(&[7, 7, -2, -7, -4]), 14);
   }
 }
