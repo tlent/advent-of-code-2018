@@ -1,9 +1,8 @@
+extern crate day_1;
 extern crate failure;
 
-mod lib;
-
+use day_1::{find_repeat_result, parse_input, sum};
 use failure::Error;
-use lib::{find_repeat_result, parse_input, sum};
 
 pub const INPUT: &'static str = include_str!("../input");
 

@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate criterion;
-extern crate advent_of_code_day_1;
+extern crate day_1;
 
-use advent_of_code_day_1::{find_repeat_result, parse_input};
+use day_1::{find_repeat_result, parse_input};
 
 use criterion::Criterion;
 
