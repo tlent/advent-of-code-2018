@@ -40,7 +40,7 @@ pub fn count_overlapping_fabric_claim_units(claims: &Vec<FabricClaim>) -> usize 
     .count()
 }
 
-pub fn find_fabric_claim_with_no_overlap<'a>(claims: &'a Vec<FabricClaim>) -> &'a FabricClaim {
+pub fn find_fabric_claim_with_no_overlap(claims: &Vec<FabricClaim>) -> &FabricClaim {
   let claim_count_by_coordinate = get_claim_count_by_coordinate_map(claims);
   &claims
     .iter()
@@ -83,9 +83,10 @@ mod test {
       count_overlapping_fabric_claim_units(&get_sample_claims().to_vec()),
       4
     );
-    let real_input = include_str!("../input");
-    let real_claims = parse_input(real_input);
-    assert_eq!(count_overlapping_fabric_claim_units(&real_claims), 100261);
+    assert_eq!(
+      count_overlapping_fabric_claim_units(&get_real_input_claims()),
+      100261
+    );
   }
 
   #[test]
@@ -94,9 +95,10 @@ mod test {
       find_fabric_claim_with_no_overlap(&get_sample_claims().to_vec()).id,
       3
     );
-    let real_input = include_str!("../input");
-    let real_claims = parse_input(real_input);
-    assert_eq!(find_fabric_claim_with_no_overlap(&real_claims).id, 251);
+    assert_eq!(
+      find_fabric_claim_with_no_overlap(&get_real_input_claims()).id,
+      251
+    );
   }
 
   fn get_sample_claims() -> [FabricClaim; 3] {
@@ -120,5 +122,11 @@ mod test {
         height: 2,
       },
     ]
+  }
+
+  // relies on correct parse_input
+  fn get_real_input_claims() -> Vec<FabricClaim> {
+    let real_input = include_str!("../input");
+    parse_input(real_input)
   }
 }
