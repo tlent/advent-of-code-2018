@@ -7,9 +7,8 @@ const PARSE_REGEX: &'static str = r"#(\d+) @ (\d+),(\d+): (\d+)x(\d+)";
 
 pub fn parse_input(input: &str) -> Vec<FabricClaim> {
   let re = Regex::new(PARSE_REGEX).unwrap();
-  let mut result = vec![];
-  for capture in re.captures_iter(input) {
-    result.push(FabricClaim {
+  re.captures_iter(input)
+    .map(|capture| FabricClaim {
       id: capture.get(1).unwrap().as_str().parse().unwrap(),
       coordinates: Point {
         x: capture.get(2).unwrap().as_str().parse().unwrap(),
@@ -17,9 +16,7 @@ pub fn parse_input(input: &str) -> Vec<FabricClaim> {
       },
       width: capture.get(4).unwrap().as_str().parse().unwrap(),
       height: capture.get(5).unwrap().as_str().parse().unwrap(),
-    })
-  }
-  result
+    }).collect()
 }
 
 #[derive(PartialEq, Debug, Clone)]
@@ -37,30 +34,14 @@ pub struct Point {
 }
 
 pub fn count_overlapping_fabric_claim_units(claims: &Vec<FabricClaim>) -> usize {
-  claims
-    .iter()
-    .fold(HashMap::new(), |mut map, rect| {
-      for x in rect.coordinates.x..(rect.coordinates.x + rect.width) {
-        for y in rect.coordinates.y..(rect.coordinates.y + rect.height) {
-          *map.entry(Point { x, y }).or_insert(0) += 1;
-        }
-      }
-      map
-    })
+  get_claim_count_by_coordinate_map(claims)
     .values()
     .filter(|value| **value > 1)
     .count()
 }
 
 pub fn find_fabric_claim_with_no_overlap<'a>(claims: &'a Vec<FabricClaim>) -> &'a FabricClaim {
-  let claim_count_by_coordinate = claims.iter().fold(HashMap::new(), |mut map, claim| {
-    for x in claim.coordinates.x..(claim.coordinates.x + claim.width) {
-      for y in claim.coordinates.y..(claim.coordinates.y + claim.height) {
-        *map.entry(Point { x, y }).or_insert(0) += 1;
-      }
-    }
-    map
-  });
+  let claim_count_by_coordinate = get_claim_count_by_coordinate_map(claims);
   &claims
     .iter()
     .find(|claim| {
@@ -72,8 +53,18 @@ pub fn find_fabric_claim_with_no_overlap<'a>(claims: &'a Vec<FabricClaim>) -> &'
         }
       }
       true
-    })
-    .expect("No solution found")
+    }).expect("No solution found")
+}
+
+fn get_claim_count_by_coordinate_map(claims: &Vec<FabricClaim>) -> HashMap<Point, u32> {
+  claims.iter().fold(HashMap::new(), |mut map, claim| {
+    for x in claim.coordinates.x..(claim.coordinates.x + claim.width) {
+      for y in claim.coordinates.y..(claim.coordinates.y + claim.height) {
+        *map.entry(Point { x, y }).or_insert(0) += 1;
+      }
+    }
+    map
+  })
 }
 
 #[cfg(test)]
