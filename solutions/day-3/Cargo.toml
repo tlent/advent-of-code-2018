@@ -1,0 +1,11 @@
+[package]
+name = "advent-of-code-day-3"
+version = "0.1.0"
+authors = ["Thomas Lent <tcl293@gmail.com>"]
+
+[lib]
+name = "day_3"
+path = "src/lib.rs"
+
+[dependencies]
+regex = "1"
