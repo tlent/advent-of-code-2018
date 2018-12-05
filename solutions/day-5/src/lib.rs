@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 // Spent hours not realizing the input must be trimmed or the \n at the end will add 1 to the result
 pub fn parse_input(input: &str) -> &str {
   input.trim()
@@ -11,12 +9,12 @@ pub fn find_part_one_solution(polymer: &str) -> usize {
 }
 
 pub fn find_part_two_solution(polymer: &str) -> usize {
-  let polymer_units: HashSet<char> = polymer.chars().map(|c| c.to_ascii_lowercase()).collect();
-  polymer_units
-    .iter()
-    .map(|&removed_unit| {
-      fully_react_polymer(&polymer.replace(|c: char| c.to_ascii_lowercase() == removed_unit, ""))
-        .len()
+  (b'a'..b'z')
+    .map(|removed_unit| {
+      fully_react_polymer(
+        &polymer.replace(|c: char| c.to_ascii_lowercase() == removed_unit as char, ""),
+      )
+      .len()
     })
     .min()
     .expect("No solution found")
