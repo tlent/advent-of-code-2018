@@ -30,12 +30,14 @@ fn fully_react_polymer(polymer: &str) -> String {
     current_polymer = current_polymer
       .chars()
       .fold(String::new(), |mut result, unit| {
-        let last_result_unit = result.chars().last();
-        if last_result_unit.is_some() && is_reacting_pair(unit, last_result_unit.unwrap()) {
-          result.pop();
-        } else {
-          result.push(unit);
-        }
+        match result.chars().last() {
+          Some(previous_unit) if is_reacting_pair(unit, previous_unit) => {
+            result.pop();
+          }
+          _ => {
+            result.push(unit);
+          }
+        };
         result
       });
   }
