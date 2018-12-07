@@ -175,7 +175,7 @@ impl fmt::Debug for Grid {
   }
 }
 
-trait ExclusiveMinByExt: Iterator {
+trait MinByStrictExt: Iterator {
   /// Returns the element that has the minimum value.
   ///
   /// If several elements are equally minimum, None is returned.
@@ -213,7 +213,7 @@ trait ExclusiveMinByExt: Iterator {
   }
 }
 
-impl<I: Iterator> ExclusiveMinByExt for I {}
+impl<I: Iterator> MinByStrictExt for I {}
 
 pub fn parse_input(input: &str) -> Result<Vec<Point>, ParseIntError> {
   input
