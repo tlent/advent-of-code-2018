@@ -68,7 +68,7 @@ impl Grid {
   fn fill_areas(&mut self) {
     for (i, row) in self.data.iter_mut().enumerate() {
       for (j, value) in row.iter_mut().enumerate() {
-        if let Some(_) = value {
+        if value.is_some() {
           continue;
         }
         let current_point = Point {
@@ -104,8 +104,7 @@ impl Grid {
       .coordinates
       .iter()
       .map(|c| c.point)
-      .find(|p| point == p)
-      .is_some()
+      .any(|p| *point == p)
   }
 
   fn count_points_with_id(&self, id: usize) -> usize {
@@ -114,6 +113,27 @@ impl Grid {
       .iter()
       .map(|row| row.iter().filter(|&&value| value == Some(id)).count())
       .sum()
+  }
+
+  fn count_points_with_max_total_coordinate_distance(&self, max_distance: usize) -> usize {
+    let mut count = 0;
+    for (i, row) in self.data.iter().enumerate() {
+      for j in 0..row.len() {
+        let current_point = Point {
+          x: j + self.x_offset,
+          y: i + self.y_offset,
+        };
+        let total_coordinate_distance: usize = self
+          .coordinates
+          .iter()
+          .map(|c| current_point.distance_to(&c.point))
+          .sum();
+        if total_coordinate_distance < max_distance {
+          count += 1;
+        }
+      }
+    }
+    count
   }
 }
 
@@ -127,7 +147,7 @@ impl fmt::Debug for Grid {
     for column_number in self.x_offset..self.x_offset + self.data[0].len() {
       write!(f, "{} ", column_number)?;
     }
-    write!(f, "\n")?;
+    writeln!(f)?;
     for (i, row) in self.data.iter().enumerate() {
       let y = i + self.y_offset;
       write!(f, "{} ", y)?;
@@ -143,13 +163,13 @@ impl fmt::Debug for Grid {
               } else {
                 LOWERCASE_LETTERS
               };
-              letters.chars().nth(*i).unwrap_or('#')
+              letters.chars().nth(*i).unwrap_or('*')
             }
             None => '.',
           }
         )?;
       }
-      write!(f, "\n")?;
+      writeln!(f)?;
     }
     write!(f, "\n}}")
   }
@@ -225,7 +245,10 @@ pub fn find_part_one_solution(points: &[Point]) -> usize {
     .expect("No solution found")
 }
 
-pub fn find_part_two_solution() {}
+pub fn find_part_two_solution(points: &[Point], max_distance: usize) -> usize {
+  let grid = Grid::from_points(points);
+  grid.count_points_with_max_total_coordinate_distance(max_distance)
+}
 
 #[cfg(test)]
 mod test {
@@ -241,6 +264,12 @@ mod test {
   fn it_finds_correct_part_one_solution() {
     let sample_input = get_sample_input();
     assert_eq!(find_part_one_solution(&sample_input), 17);
+  }
+
+  #[test]
+  fn it_finds_correct_part_two_solution() {
+    let sample_input = get_sample_input();
+    assert_eq!(find_part_two_solution(&sample_input, 32), 16);
   }
 
   #[test]
