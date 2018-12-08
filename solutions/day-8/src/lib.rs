@@ -6,47 +6,30 @@ pub struct Node {
   metadata: Vec<u32>,
 }
 
-pub fn parse_input(input: &str) -> Result<Node, ParseIntError> {
-  let data = input
-    .trim()
-    .split_whitespace()
-    .map(|d| d.parse())
-    .collect::<Result<Vec<_>, ParseIntError>>()?;
-  Ok(build_node(&data))
-}
-
-fn build_node(data: &[u32]) -> Node {
-  build_node_impl(data).0
-}
-
-fn build_node_impl(data: &[u32]) -> (Node, usize) {
-  let child_count = data[0];
-  let metadata_count = data[1];
-  let mut children = vec![];
-  let mut index = 2;
-  for _ in 0..child_count {
-    let (child, len) = build_node_impl(&data[index..]);
-    children.push(child);
-    index += len;
-  }
-  let metadata = data[index..(index + metadata_count as usize)].to_vec();
-  index += metadata_count as usize;
-  (Node { children, metadata }, index)
-}
-
-pub fn solve_part_one(n: &Node) -> u32 {
-  sum_metadata(n)
-}
-
-fn sum_metadata(n: &Node) -> u32 {
-  n.metadata.iter().sum::<u32>() + n.children.iter().map(|c| sum_metadata(c)).sum::<u32>()
-}
-
-pub fn solve_part_two(n: &Node) -> u32 {
-  n.find_value()
-}
-
 impl Node {
+  fn from_data(data: &[u32]) -> Self {
+    fn build_node(data: &[u32]) -> (Node, usize) {
+      let child_count = data[0];
+      let metadata_count = data[1];
+      let mut children = vec![];
+      let mut index = 2;
+      for _ in 0..child_count {
+        let (child, len) = build_node(&data[index..]);
+        children.push(child);
+        index += len;
+      }
+      let metadata = data[index..(index + metadata_count as usize)].to_vec();
+      index += metadata_count as usize;
+      (Node { children, metadata }, index)
+    }
+
+    build_node(data).0
+  }
+
+  fn sum_metadata(&self) -> u32 {
+    self.metadata.iter().sum::<u32>() + self.children.iter().map(|c| c.sum_metadata()).sum::<u32>()
+  }
+
   fn find_value(&self) -> u32 {
     if self.children.is_empty() {
       return self.metadata.iter().sum();
@@ -60,6 +43,23 @@ impl Node {
       })
       .sum()
   }
+}
+
+pub fn parse_input(input: &str) -> Result<Node, ParseIntError> {
+  let data = input
+    .trim()
+    .split_whitespace()
+    .map(|d| d.parse())
+    .collect::<Result<Vec<_>, ParseIntError>>()?;
+  Ok(Node::from_data(&data))
+}
+
+pub fn solve_part_one(n: &Node) -> u32 {
+  n.sum_metadata()
+}
+
+pub fn solve_part_two(n: &Node) -> u32 {
+  n.find_value()
 }
 
 #[cfg(test)]
