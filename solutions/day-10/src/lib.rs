@@ -57,15 +57,13 @@ pub fn parse_input(input: &str) -> Result<Vec<Point>, Box<dyn Error>> {
 
 pub fn solve(points: &[Point]) -> (String, u32) {
   let mut points = points.to_owned();
-  let mut steps = 0;
-  while !points.iter().all(|p| p.has_neighbor_in(&points)) {
-    points.iter_mut().for_each(|p| p.step());
-    steps += 1;
-    if steps == MAX_STEPS {
-      panic!("hit max steps");
+  for step in 0..=MAX_STEPS {
+    if points.iter().all(|p| p.has_neighbor_in(&points)) {
+      return (points_to_str(&points), step);
     }
+    points.iter_mut().for_each(|p| p.step());
   }
-  (points_to_str(&points), steps)
+  panic!("hit max steps");
 }
 
 fn points_to_str(points: &[Point]) -> String {
