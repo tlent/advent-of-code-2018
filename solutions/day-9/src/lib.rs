@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::error::Error;
 
 pub fn parse_input(input: &str) -> Result<(usize, usize), Box<dyn Error>> {
@@ -15,20 +16,22 @@ pub fn parse_input(input: &str) -> Result<(usize, usize), Box<dyn Error>> {
 
 pub fn solve((player_count, last_marble): &(usize, usize)) -> usize {
   let mut player_scores = vec![0; *player_count];
-  let mut marbles = vec![0];
-  let mut current_marble_index = 0;
-  for marble in 1..last_marble + 1 {
+  let mut marbles = VecDeque::new();
+  marbles.push_back(0);
+  for marble in 1..=*last_marble {
     if marble % 23 == 0 {
-      current_marble_index = if current_marble_index >= 7 {
-        current_marble_index - 7
-      } else {
-        marbles.len() - (7 - current_marble_index)
-      };
-      player_scores[(marble - 1) % player_count] += marble + marbles.remove(current_marble_index);
+      for _ in 0..7 {
+        let back = marbles.pop_back().unwrap();
+        marbles.push_front(back);
+      }
+      player_scores[marble % player_count] += marble + marbles.pop_front().unwrap();
       continue;
     }
-    current_marble_index = (current_marble_index + 2) % marbles.len();
-    marbles.insert(current_marble_index, marble);
+    for _ in 0..2 {
+      let front = marbles.pop_front().unwrap();
+      marbles.push_back(front);
+    }
+    marbles.push_front(marble);
   }
   player_scores.into_iter().max().expect("No solution found")
 }
