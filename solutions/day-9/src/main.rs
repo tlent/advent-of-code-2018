@@ -1,4 +1,4 @@
-use day_9::{parse_input, solve};
+use day_9::{parse_input, solve_with_deque as solve};
 use std::error::Error;
 
 const INPUT: &str = include_str!("../input");

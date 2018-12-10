@@ -9,3 +9,10 @@ name = "day_9"
 path = "src/lib.rs"
 
 [dependencies]
+
+[dev-dependencies]
+criterion = "0.2"
+
+[[bench]]
+name = "day_9_bench"
+harness = false
