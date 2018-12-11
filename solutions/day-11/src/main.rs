@@ -1,53 +1,86 @@
+use std::collections::HashMap;
+
 const INPUT: u32 = 5034;
 const FUEL_CELL_GRID_SIZE: u32 = 300;
 const PART_ONE_SQUARE_SIZE: u32 = 3;
 
-fn find_power_level(coordinate: (u32, u32), serial_number: u32) -> i32 {
+fn calculate_power_level(coordinate: (u32, u32), serial_number: u32) -> i32 {
   let rack_id = coordinate.0 + 10;
   (((rack_id * coordinate.1 + serial_number) * rack_id / 100) % 10) as i32 - 5
 }
 
-fn find_square_power_level(
-  top_left_coordinate: (u32, u32),
+fn calculate_square_power_level(
+  coordinate: (u32, u32),
   serial_number: u32,
   square_size: u32,
 ) -> i32 {
   let mut power_level = 0;
-  for y in top_left_coordinate.1..top_left_coordinate.1 + square_size {
-    for x in top_left_coordinate.0..top_left_coordinate.0 + square_size {
-      power_level += find_power_level((x, y), serial_number);
+  for y in coordinate.1..coordinate.1 + square_size {
+    for x in coordinate.0..coordinate.0 + square_size {
+      power_level += calculate_power_level((x, y), serial_number);
     }
   }
   power_level
 }
 
-fn solve(serial_number: u32, square_size: u32) -> ((u32, u32), i32) {
-  let mut possible_coordinates = vec![];
-  for start_y in 1..=(FUEL_CELL_GRID_SIZE - square_size) {
-    for start_x in 1..=(FUEL_CELL_GRID_SIZE - square_size) {
-      possible_coordinates.push((start_x, start_y));
-    }
-  }
-  possible_coordinates
-    .iter()
-    .map(|c| (*c, find_square_power_level(*c, serial_number, square_size)))
-    .max_by_key(|c| c.1)
-    .unwrap()
+fn solve_part_one(serial_number: u32) -> (u32, u32) {
+  solve(serial_number, &[PART_ONE_SQUARE_SIZE]).0
 }
 
-fn solve_part_one(serial_number: u32) -> (u32, u32) {
-  solve(serial_number, PART_ONE_SQUARE_SIZE).0
+fn extend_square_power_level(
+  previous_square_power_level: i32,
+  coordinate: (u32, u32),
+  serial_number: u32,
+  new_size: u32,
+) -> i32 {
+  let mut power_level = previous_square_power_level;
+  for x in coordinate.0..(coordinate.0 + new_size) {
+    let y = coordinate.1 + new_size - 1;
+    power_level += calculate_power_level((x, y), serial_number);
+  }
+  // subtract 1 to avoid counting bottom right corner twice
+  for y in coordinate.1..(coordinate.1 + new_size - 1) {
+    let x = coordinate.0 + new_size - 1;
+    power_level += calculate_power_level((x, y), serial_number);
+  }
+  power_level
+}
+
+fn solve(serial_number: u32, square_sizes: &[u32]) -> ((u32, u32), u32) {
+  let mut previous_square_power_levels = HashMap::new();
+  square_sizes
+    .iter()
+    .map(|&square_size| {
+      let mut possible_coordinates = vec![];
+      for start_y in 1..=(FUEL_CELL_GRID_SIZE - square_size) {
+        for start_x in 1..=(FUEL_CELL_GRID_SIZE - square_size) {
+          possible_coordinates.push((start_x, start_y));
+        }
+      }
+      let (max_power_level, c) = possible_coordinates
+        .iter()
+        .map(|&c| {
+          let power_level = match previous_square_power_levels.get(&(c, square_size - 1)) {
+            Some(&previous_power_level) => {
+              extend_square_power_level(previous_power_level, c, serial_number, square_size)
+            }
+            None => calculate_square_power_level(c, serial_number, square_size),
+          };
+          previous_square_power_levels.insert((c, square_size), power_level);
+          (power_level, c)
+        })
+        .max_by_key(|&(power_level, ..)| power_level)
+        .unwrap();
+      (max_power_level, c, square_size)
+    })
+    .max_by_key(|&(power_level, ..)| power_level)
+    .map(|(_power_level, c, square_size)| (c, square_size))
+    .unwrap()
 }
 
 fn solve_part_two(serial_number: u32) -> ((u32, u32), u32) {
-  (1..FUEL_CELL_GRID_SIZE)
-    .map(|size| {
-      let (c, power_level) = solve(serial_number, size);
-      (power_level, c, size)
-    })
-    .max_by_key(|(power_level, ..)| *power_level)
-    .map(|(_power_level, c, size)| (c, size))
-    .unwrap()
+  let square_sizes: Vec<_> = (1..FUEL_CELL_GRID_SIZE).collect();
+  solve(serial_number, &square_sizes)
 }
 
 fn main() {
@@ -70,7 +103,7 @@ mod tests {
       get_sample_cell_power_levels().iter().enumerate()
     {
       assert_eq!(
-        find_power_level(*cell, *serial_number),
+        calculate_power_level(*cell, *serial_number),
         *expected_power_level,
         "failed for input #{} with cell: {:?} serial number: {}",
         i + 1,
