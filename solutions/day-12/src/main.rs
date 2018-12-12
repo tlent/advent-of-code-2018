@@ -3,10 +3,15 @@ use std::collections::HashSet;
 const INPUT: &str = include_str!("../input");
 const GENERATIONS: u32 = 20;
 
-fn parse_input(input: &str) -> (Vec<bool>, HashSet<Vec<bool>>) {
+fn parse_input(input: &str) -> (Vec<u32>, HashSet<Vec<bool>>) {
   let mut lines = input.trim().lines();
   let first_line = lines.nth(0).unwrap();
-  let initial_state: Vec<_> = first_line[15..].chars().map(|c| c == '#').collect();
+  let initial_state: Vec<_> = first_line[15..]
+    .chars()
+    .enumerate()
+    .filter(|&(_i, c)| c == '#')
+    .map(|(i, _c)| i as u32)
+    .collect();
   assert!(lines.next().unwrap().is_empty());
   let rules = lines.fold(HashSet::new(), |mut rules, line| {
     if line.chars().nth(9).unwrap() == '#' {
@@ -18,64 +23,35 @@ fn parse_input(input: &str) -> (Vec<bool>, HashSet<Vec<bool>>) {
   (initial_state, rules)
 }
 
-fn solve_part_one(
-  initial_state: &[bool],
-  rules: &HashSet<Vec<bool>>,
-  start_pot_number: i32,
-) -> i32 {
-  let plant_count = initial_state.len();
-  let mut current_gen = initial_state.to_vec();
-  for _ in 0..GENERATIONS {
-    display_plants(&current_gen);
-    current_gen = (0..plant_count)
-      .map(|current_plant_index| {
-        let start = current_plant_index as i32 - 2;
-        let end = current_plant_index as i32 + 2;
-        let sequence: Vec<_> = (start..=end)
-          .map(|i| {
-            let index = if i < 0 {
-              (plant_count as i32 + i) as usize
-            } else if i >= plant_count as i32 {
-              i as usize - plant_count
-            } else {
-              i as usize
-            };
-            current_gen[index]
-          })
-          .collect();
-        rules.contains(&sequence)
-      })
-      .collect();
-
-    println!(
-      "{}",
-      (start_pot_number..)
-        .zip(current_gen.iter())
-        .filter(|(_, b)| **b)
-        .map(|(i, _)| i)
-        .sum::<i32>()
-    );
+fn solve_part_one(initial_state: &[u32], rules: &HashSet<Vec<bool>>) -> i32 {
+  let mut current_state: Vec<_> = initial_state.iter().map(|&x| x as i32).collect();
+  for _ in 1..=GENERATIONS {
+    let mut next_state = vec![];
+    let current_min_pot_number = current_state[0];
+    let current_max_pot_number = current_state[current_state.len() - 1];
+    for pot_number in (current_min_pot_number - 2)..=(current_max_pot_number + 2) {
+      let sequence: Vec<_> = ((pot_number - 2)..=(pot_number + 2))
+        .map(|i| {
+          if i < current_min_pot_number || i > current_max_pot_number {
+            false
+          } else {
+            current_state.binary_search(&i).is_ok()
+          }
+        })
+        .collect();
+      let has_plant = rules.contains(&sequence);
+      if has_plant {
+        next_state.push(pot_number);
+      }
+    }
+    current_state = next_state;
   }
-  (start_pot_number..)
-    .zip(current_gen.iter())
-    .filter(|(_, b)| **b)
-    .map(|(i, _)| i)
-    .sum()
-}
-
-fn display_plants(plants: &[bool]) {
-  println!(
-    "{}",
-    plants
-      .iter()
-      .map(|b| if *b { '#' } else { '.' })
-      .collect::<String>()
-  );
+  current_state.iter().sum()
 }
 
 fn main() {
   let (initial_state, rules) = parse_input(INPUT);
-  println!("{}", solve_part_one(&initial_state, &rules, 0));
+  println!("{}", solve_part_one(&initial_state, &rules));
 }
 
 #[cfg(test)]
@@ -95,10 +71,10 @@ mod test {
   #[test]
   fn it_solves_part_one_correctly() {
     let (initial_state, rules) = get_sample_input();
-    assert_eq!(solve_part_one(&initial_state, &rules, -3), 325);
+    assert_eq!(solve_part_one(&initial_state, &rules), 325);
   }
 
-  fn get_sample_input() -> (Vec<bool>, HashSet<Vec<bool>>) {
+  fn get_sample_input() -> (Vec<u32>, HashSet<Vec<bool>>) {
     let mut rules = HashSet::new();
     rules.extend(
       vec![
@@ -119,13 +95,6 @@ mod test {
       ]
       .into_iter(),
     );
-    (
-      vec![
-        false, false, false, true, false, false, true, false, true, false, false, true, true,
-        false, false, false, false, false, false, true, true, true, false, false, false, true,
-        true, true, false, false, false, false, false, false, false, false, false, false, false,
-      ],
-      rules,
-    )
+    (vec![0, 3, 5, 8, 9, 16, 17, 18, 22, 23, 24], rules)
   }
 }
