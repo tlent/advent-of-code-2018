@@ -1,4 +1,4 @@
-use std::cmp::Reverse;
+use std::cmp::{Ordering, Reverse};
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::fmt;
 use std::usize;
@@ -10,7 +10,14 @@ const MOVEMENT_SAMPLE_INPUT: &str = include_str!("../sample-input-movement");
 const COMBAT_SAMPLE_INPUT: &str = include_str!("../sample-input-combat");
 
 const START_HP: u32 = 200;
-const ATTACK_POWER: u32 = 3;
+const START_ATTACK_POWER: u32 = 3;
+const PART_TWO_MIN_ATTACK_POWER: u32 = 4;
+
+// TODO:
+// EASY PART TWO IMPROVEMENT: End combat when first elf dies
+// Opportunity for big clean up: Find a way to actually remove dead units
+// Possibly speed up everything by improving the movement checks. Currently there are a lot of
+// repeated checks that may not all be necessary
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
 struct Point {
@@ -106,7 +113,7 @@ impl Unit {
       id,
       team,
       hit_points: START_HP,
-      attack_power: ATTACK_POWER,
+      attack_power: START_ATTACK_POWER,
       position,
     }
   }
@@ -127,7 +134,7 @@ impl Unit {
       .position
       .neighbors()
       .iter()
-      .filter_map(|p| world.get_unit_at_position(*p))
+      .filter_map(|p| world.get_live_unit_at_position(*p))
       .filter(|u| u.team != self.team && u.hit_points > 0)
       .collect();
     if adjacent_live_enemies.is_empty() {
@@ -136,7 +143,7 @@ impl Unit {
         .position
         .neighbors()
         .iter()
-        .filter_map(|p| world.get_unit_at_position(*p))
+        .filter_map(|p| world.get_live_unit_at_position(*p))
         .filter(|u| u.team != self.team && u.hit_points > 0)
         .collect();
     }
@@ -159,31 +166,37 @@ impl Unit {
       .iter()
       .filter(|u| u.team != self.team && u.hit_points > 0)
       .collect();
-    let in_range_positions: Vec<_> = live_enemies
+    let mut in_range_positions: Vec<_> = live_enemies
       .iter()
       .map(|u| world.get_open_neighbors(u.position))
       .flatten()
       .collect();
-    let reachable_positions: Vec<_> = in_range_positions
-      .iter()
-      .filter_map(|p| {
-        world
-          .find_shortest_path(self.position, *p)
-          .map(|path| (*p, path.len()))
-      })
-      .collect();
-    if reachable_positions.is_empty() {
+    in_range_positions.sort_by_key(|p| self.position.distance_to(&p));
+    let mut min_result = None;
+    for p in in_range_positions {
+      let shortest_path_len = min_result.map(|(shortest_path_len, _)| shortest_path_len);
+      if shortest_path_len.is_some() && self.position.distance_to(&p) > shortest_path_len.unwrap() {
+        continue;
+      }
+      let shortest_path = world.find_shortest_path(self.position, p);
+      if shortest_path.is_none() {
+        continue;
+      }
+      let shortest_path = shortest_path.unwrap();
+      let current_result = (shortest_path.len() as u32, p);
+      if min_result.is_none() || current_result < min_result.unwrap() {
+        min_result = Some(current_result)
+      }
+    }
+    if min_result.is_none() {
       return;
     }
-    let (target, shortest_path_len) = reachable_positions
-      .iter()
-      .min_by_key(|(position, path_len)| (path_len, position))
-      .unwrap();
+    let (shortest_path_len, target) = min_result.unwrap();
     let next_position = world
       .get_open_neighbors(self.position)
       .iter()
-      .filter_map(|p| world.find_shortest_path(*p, *target))
-      .filter(|path| path.len() == shortest_path_len - 1)
+      .filter_map(|p| world.find_shortest_path(*p, target))
+      .filter(|path| (path.len() as u32) == shortest_path_len - 1)
       .map(|path| path[0])
       .min()
       .unwrap();
@@ -193,7 +206,7 @@ impl Unit {
 
 impl fmt::Display for Unit {
   fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-    write!(f, "{}", self.team)
+    write!(f, "{}({})", self.team, self.hit_points)
   }
 }
 
@@ -244,15 +257,6 @@ impl World {
 
   fn step(&mut self) -> Option<(Team, u32)> {
     self.units.sort_by_key(|u| u.position);
-    // println!("{}", self);
-    // println!(
-    //   "{:?}",
-    //   self
-    //     .units
-    //     .iter()
-    //     .map(|u| format!("{}{}({})", u.team, u.id, u.hit_points))
-    //     .collect::<Vec<_>>()
-    // );
     for i in 0..self.units.len() {
       let mut unit = self.units[i].clone();
       let game_over = unit.step(self);
@@ -272,7 +276,7 @@ impl World {
     let mut rounds = 0;
     let mut result = None;
     while result.is_none() {
-      println!("{}", rounds);
+      println!("{}", self);
       result = self.step();
       rounds += 1;
     }
@@ -284,8 +288,11 @@ impl World {
     self.walls.contains(&position)
   }
 
-  fn get_unit_at_position(&self, position: Point) -> Option<&Unit> {
-    self.units.iter().find(|u| u.position == position)
+  fn get_live_unit_at_position(&self, position: Point) -> Option<&Unit> {
+    self
+      .units
+      .iter()
+      .find(|u| u.hit_points > 0 && u.position == position)
   }
 
   fn find_shortest_path(&self, start: Point, goal: Point) -> Option<Vec<Point>> {
@@ -310,23 +317,51 @@ impl World {
       .cloned()
       .collect()
   }
+
+  fn set_elves_attack_power(&mut self, attack_power: u32) {
+    for elf in self.units.iter_mut().filter(|u| u.team == Team::Elf) {
+      elf.attack_power = attack_power;
+    }
+  }
+
+  fn find_minimum_no_loss_elf_win_attack_power(&mut self) -> ((u32, Team, u32), u32) {
+    for attack_power in PART_TWO_MIN_ATTACK_POWER.. {
+      let mut world = self.clone();
+      println!("Trying attack power {}", attack_power);
+      world.set_elves_attack_power(attack_power);
+      let before_combat_elf_count = world.units.iter().filter(|u| u.team == Team::Elf).count();
+      let result = world.simulate_combat();
+      let after_combat_elf_count = world.units.iter().filter(|u| u.team == Team::Elf).count();
+      if result.1 == Team::Elf && before_combat_elf_count == after_combat_elf_count {
+        return (result, attack_power);
+      }
+    }
+    unreachable!()
+  }
 }
 
 impl fmt::Display for World {
   fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
     let (max_x, max_y) = self.bounds;
     for i in 0..max_y {
+      let mut row_units = vec![];
       for j in 0..max_x {
         let current_position = Point { x: j, y: i };
         let has_wall = self.has_wall_at_position(current_position);
-        let unit = self.get_unit_at_position(current_position);
+        let unit = self.get_live_unit_at_position(current_position);
         if unit.is_some() {
-          unit.unwrap().fmt(f)?;
+          let u = unit.unwrap();
+          row_units.push(u);
+          write!(f, "{}", u.team)?;
         } else if has_wall {
           write!(f, "#")?;
         } else {
           write!(f, ".")?;
         }
+      }
+      write!(f, " ")?;
+      for u in row_units.iter() {
+        write!(f, "{} ", u)?;
       }
       writeln!(f)?;
     }
@@ -334,8 +369,34 @@ impl fmt::Display for World {
   }
 }
 
+#[derive(Debug)]
+struct MinHeapWrapper<T> {
+  data: T,
+  f_score: u32,
+}
+
+impl<T> Eq for MinHeapWrapper<T> {}
+
+impl<T> PartialEq for MinHeapWrapper<T> {
+  fn eq(&self, other: &Self) -> bool {
+    self.f_score == other.f_score
+  }
+}
+
+impl<T> Ord for MinHeapWrapper<T> {
+  fn cmp(&self, other: &Self) -> Ordering {
+    Reverse(self.f_score).cmp(&Reverse(other.f_score))
+  }
+}
+
+impl<T> PartialOrd for MinHeapWrapper<T> {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    Some(self.cmp(other))
+  }
+}
+
 fn a_star(start: Point, goal: Point, world: &World) -> Option<Vec<Point>> {
-  let mut evaluated_nodes = HashSet::new();
+  let mut seen_nodes = HashSet::new();
   let mut came_from = HashMap::new();
   let mut g_scores = HashMap::new();
   g_scores.insert(start, 0);
@@ -343,29 +404,39 @@ fn a_star(start: Point, goal: Point, world: &World) -> Option<Vec<Point>> {
   let start_f_score = start.distance_to(&goal);
   f_scores.insert(start, start_f_score);
   let mut new_nodes = BinaryHeap::new();
-  new_nodes.push((Reverse(start_f_score), start));
+  new_nodes.push(MinHeapWrapper {
+    f_score: start_f_score,
+    data: start,
+  });
   while !new_nodes.is_empty() {
-    let current = new_nodes.pop().map(|(_, node)| node).unwrap();
+    let wrapper = new_nodes.pop().unwrap();
+    if wrapper.f_score != *f_scores.get(&wrapper.data).unwrap() {
+      // wrapper with an outdated f_score
+      continue;
+    }
+    let current = wrapper.data;
     if current == goal {
       return Some(reconstruct_path(&came_from, current));
     }
-    evaluated_nodes.insert(current);
+    seen_nodes.insert(current);
     for neighbor in world.get_open_neighbors(current).iter() {
-      if evaluated_nodes.contains(neighbor) {
+      if seen_nodes.contains(neighbor) {
         continue;
       }
       let new_g_score = g_scores.get(&current).unwrap() + 1;
-      let is_neighbor_new = !new_nodes.iter().any(|&(_, node)| node == *neighbor);
-      if !is_neighbor_new && new_g_score >= *g_scores.get(neighbor).unwrap() {
+      if new_nodes.iter().any(|w| w.data == *neighbor)
+        && new_g_score >= *g_scores.get(neighbor).unwrap()
+      {
         continue;
       }
       came_from.insert(*neighbor, current);
       g_scores.insert(*neighbor, new_g_score);
       let new_f_score = new_g_score + neighbor.distance_to(&goal);
       f_scores.insert(*neighbor, new_f_score);
-      if is_neighbor_new {
-        new_nodes.push((Reverse(new_f_score), *neighbor));
-      }
+      new_nodes.push(MinHeapWrapper {
+        f_score: new_f_score,
+        data: *neighbor,
+      });
     }
   }
   None
@@ -383,10 +454,10 @@ fn reconstruct_path(came_from: &HashMap<Point, Point>, current: Point) -> Vec<Po
 }
 
 fn main() {
-  let world = World::from_input(INPUT);
-  let mut part_one_world = world.clone();
-  let (rounds, winning_team, remaining_hp) = part_one_world.simulate_combat();
-  println!("{}", part_one_world);
+  let initial_world = World::from_input(INPUT);
+  let mut world = initial_world.clone();
+  let (rounds, winning_team, remaining_hp) = world.simulate_combat();
+  println!("{}", world);
   println!("Combat ends after {} rounds", rounds);
   println!(
     "{} win with {} hitpoints left",
@@ -394,6 +465,18 @@ fn main() {
     remaining_hp
   );
   println!("Outcome: {}", remaining_hp * rounds);
+  let mut world = initial_world.clone();
+  let ((rounds, winning_team, remaining_hp), min_attack_power) =
+    world.find_minimum_no_loss_elf_win_attack_power();
+  println!("{}", world);
+  println!("Combat ends after {} rounds", rounds);
+  println!(
+    "{} win with {} hitpoints left",
+    winning_team.full_name(),
+    remaining_hp
+  );
+  println!("Outcome: {}", remaining_hp * rounds);
+  println!("Min attack power: {}", min_attack_power);
 }
 
 #[cfg(test)]
@@ -407,13 +490,14 @@ mod test {
     include_str!("../sample-input-4"),
     include_str!("../sample-input-5"),
   ];
-  const SAMPLE_RESULTS: [(u32, Team, u32); 5] = [
+  const PART_ONE_SAMPLE_RESULTS: [(u32, Team, u32); 5] = [
     (37, Team::Elf, 982),
     (46, Team::Elf, 859),
     (35, Team::Goblin, 793),
     (54, Team::Goblin, 536),
     (20, Team::Goblin, 937),
   ];
+  const PART_TWO_SAMPLE_RESULTS: [u32; 4] = [4, 15, 12, 34];
 
   #[test]
   fn it_solves_combat_sample_correctly() {
@@ -438,7 +522,7 @@ mod test {
     for sample_number in 0..5 {
       let input = SAMPLE_INPUTS[sample_number];
       let (rounds, winning_team, remaining_hp) = World::from_input(input).simulate_combat();
-      let expected = SAMPLE_RESULTS[sample_number];
+      let expected = PART_ONE_SAMPLE_RESULTS[sample_number];
       assert_eq!(
         rounds, expected.0,
         "Wrong rounds for sample #{}",
@@ -454,6 +538,20 @@ mod test {
         "Wrong remaining hp for sample #{}",
         sample_number
       );
+    }
+  }
+
+  #[test]
+  fn it_solves_part_two_samples_correctly() {
+    let input = COMBAT_SAMPLE_INPUT;
+    let result = World::from_input(input).find_minimum_no_loss_elf_win_attack_power();
+    assert_eq!(result.1, 15, "failed for combat sample");
+
+    for sample_number in 1..4 {
+      let input = SAMPLE_INPUTS[sample_number];
+      let result = World::from_input(input).find_minimum_no_loss_elf_win_attack_power();
+      let expected = PART_TWO_SAMPLE_RESULTS[sample_number - 1];
+      assert_eq!(result.1, expected, "failed for sample #{}", sample_number);
     }
   }
 }
