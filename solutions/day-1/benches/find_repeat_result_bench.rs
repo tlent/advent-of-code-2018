@@ -9,10 +9,10 @@ use criterion::Criterion;
 pub const INPUT: &'static str = include_str!("../input");
 
 fn criterion_benchmark(c: &mut Criterion) {
-  let numbers = parse_input(INPUT).unwrap();
-  c.bench_function("find_repeat_result", move |b| {
-    b.iter(|| find_repeat_result(&numbers))
-  });
+    let numbers = parse_input(INPUT).unwrap();
+    c.bench_function("find_repeat_result", move |b| {
+        b.iter(|| find_repeat_result(&numbers))
+    });
 }
 
 criterion_group!(benches, criterion_benchmark);

@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use std::num::ParseIntError;
 
 pub fn sum(numbers: &[i32]) -> i32 {
-  numbers.iter().sum()
+    numbers.iter().sum()
 }
 
 // Third solution after learning from /u/zSync1's solution using find_map and HashSet::replace
@@ -14,17 +14,17 @@ pub fn sum(numbers: &[i32]) -> i32 {
 // find_map combines find and map: it finds the first result that is not None and maps it using
 // the provided closure.
 pub fn find_repeat_result(numbers: &[i32]) -> i32 {
-  let mut past_results = HashSet::new();
-  let mut frequency = 0;
-  past_results.insert(0);
-  numbers
-    .iter()
-    .cycle()
-    .find_map(|number| {
-      frequency += number;
-      past_results.replace(frequency)
-    })
-    .expect("No solution found")
+    let mut past_results = HashSet::new();
+    let mut frequency = 0;
+    past_results.insert(0);
+    numbers
+        .iter()
+        .cycle()
+        .find_map(|number| {
+            frequency += number;
+            past_results.replace(frequency)
+        })
+        .expect("No solution found")
 }
 
 // Second solution after learning from others (~20% faster and much more readable)
@@ -48,61 +48,61 @@ pub fn find_repeat_result(numbers: &[i32]) -> i32 {
 // using for_each here was slightly faster than using a for..in loop
 // using nightly rust and the unstable feature cell_update had no performance benefit
 pub fn second_find_repeat_result(numbers: &[i32]) -> i32 {
-  let mut past_results = HashSet::new();
-  let frequency = Cell::new(0);
-  numbers
-    .iter()
-    .cycle()
-    .take_while(|_| past_results.insert(frequency.get()))
-    .for_each(|number| frequency.set(frequency.get() + number));
-  frequency.get()
+    let mut past_results = HashSet::new();
+    let frequency = Cell::new(0);
+    numbers
+        .iter()
+        .cycle()
+        .take_while(|_| past_results.insert(frequency.get()))
+        .for_each(|number| frequency.set(frequency.get() + number));
+    frequency.get()
 }
 
 // My solution before looking at others
 // Takes 15-20 ms on my input
 pub fn original_find_repeat_result(numbers: &[i32]) -> i32 {
-  let mut past_results = HashSet::new();
-  let mut result = 0;
-  past_results.insert(result);
-  for number in numbers.iter().cycle() {
-    result += number;
-    if past_results.contains(&result) {
-      return result;
-    }
+    let mut past_results = HashSet::new();
+    let mut result = 0;
     past_results.insert(result);
-  }
-  unreachable!()
+    for number in numbers.iter().cycle() {
+        result += number;
+        if past_results.contains(&result) {
+            return result;
+        }
+        past_results.insert(result);
+    }
+    unreachable!()
 }
 
 pub fn parse_input(input: &str) -> Result<Vec<i32>, ParseIntError> {
-  input.split_whitespace().map(|x| x.parse()).collect()
+    input.split_whitespace().map(|x| x.parse()).collect()
 }
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+    use super::*;
 
-  #[test]
-  fn sum_returns_correct_result() {
-    assert_eq!(sum(&[2, 2]), 4);
-    assert_eq!(sum(&[2, 2, -4, 0, 1]), 1);
-  }
+    #[test]
+    fn sum_returns_correct_result() {
+        assert_eq!(sum(&[2, 2]), 4);
+        assert_eq!(sum(&[2, 2, -4, 0, 1]), 1);
+    }
 
-  #[test]
-  fn find_repeat_result_returns_correct_result() {
-    assert_eq!(find_repeat_result(&[1, -1]), 0);
-    assert_eq!(find_repeat_result(&[3, 3, 4, -2, -4]), 10);
-    assert_eq!(find_repeat_result(&[-6, 3, 8, 5, -6]), 5);
-    assert_eq!(find_repeat_result(&[7, 7, -2, -7, -4]), 14);
+    #[test]
+    fn find_repeat_result_returns_correct_result() {
+        assert_eq!(find_repeat_result(&[1, -1]), 0);
+        assert_eq!(find_repeat_result(&[3, 3, 4, -2, -4]), 10);
+        assert_eq!(find_repeat_result(&[-6, 3, 8, 5, -6]), 5);
+        assert_eq!(find_repeat_result(&[7, 7, -2, -7, -4]), 14);
 
-    assert_eq!(second_find_repeat_result(&[1, -1]), 0);
-    assert_eq!(second_find_repeat_result(&[3, 3, 4, -2, -4]), 10);
-    assert_eq!(second_find_repeat_result(&[-6, 3, 8, 5, -6]), 5);
-    assert_eq!(second_find_repeat_result(&[7, 7, -2, -7, -4]), 14);
+        assert_eq!(second_find_repeat_result(&[1, -1]), 0);
+        assert_eq!(second_find_repeat_result(&[3, 3, 4, -2, -4]), 10);
+        assert_eq!(second_find_repeat_result(&[-6, 3, 8, 5, -6]), 5);
+        assert_eq!(second_find_repeat_result(&[7, 7, -2, -7, -4]), 14);
 
-    assert_eq!(original_find_repeat_result(&[1, -1]), 0);
-    assert_eq!(original_find_repeat_result(&[3, 3, 4, -2, -4]), 10);
-    assert_eq!(original_find_repeat_result(&[-6, 3, 8, 5, -6]), 5);
-    assert_eq!(original_find_repeat_result(&[7, 7, -2, -7, -4]), 14);
-  }
+        assert_eq!(original_find_repeat_result(&[1, -1]), 0);
+        assert_eq!(original_find_repeat_result(&[3, 3, 4, -2, -4]), 10);
+        assert_eq!(original_find_repeat_result(&[-6, 3, 8, 5, -6]), 5);
+        assert_eq!(original_find_repeat_result(&[7, 7, -2, -7, -4]), 14);
+    }
 }
