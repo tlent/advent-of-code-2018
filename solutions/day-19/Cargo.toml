@@ -1,0 +1,8 @@
+[package]
+name = "advent-of-code-day-19"
+version = "0.1.0"
+authors = ["Thomas Lent <tcl293@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+failure = "0.1.3"
