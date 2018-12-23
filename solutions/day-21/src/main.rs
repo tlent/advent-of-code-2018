@@ -1,4 +1,5 @@
 use failure::{ensure, format_err, Error};
+use std::collections::HashSet;
 use std::str::FromStr;
 
 const INPUT: &str = include_str!("../input");
@@ -12,6 +13,7 @@ struct Program {
     instructions: Vec<Instruction>,
     instruction_pointer_register: usize,
     registers: Registers,
+    instructions_executed: usize,
 }
 
 impl Program {
@@ -38,11 +40,12 @@ impl Program {
     fn run_to_line(&mut self, line: usize) {
         loop {
             let ip = self.registers[self.instruction_pointer_register] as usize;
+            self.instructions[ip].execute(&mut self.registers);
+            self.instructions_executed += 1;
+            self.registers[self.instruction_pointer_register] += 1;
             if ip >= self.instructions.len() || ip == line {
                 break;
             }
-            self.instructions[ip].execute(&mut self.registers);
-            self.registers[self.instruction_pointer_register] += 1;
         }
     }
 }
@@ -66,6 +69,7 @@ impl FromStr for Program {
             instructions,
             instruction_pointer_register,
             registers: [0; 6],
+            instructions_executed: 0,
         })
     }
 }
@@ -174,11 +178,26 @@ impl FromStr for Op {
     }
 }
 
+fn solve_part_two(program: &Program) -> Register {
+    let mut program = program.clone();
+    let mut seen = HashSet::new();
+    let mut prev = 0;
+    loop {
+        program.run_to_line(28);
+        let result = program.registers[2];
+        if !seen.insert(result) {
+            return prev;
+        }
+        prev = result;
+    }
+}
+
 fn main() {
     let program: Program = INPUT.parse().unwrap();
     let mut part_one_program = program.clone();
-    part_one_program.run_to_line(29);
+    part_one_program.run_to_line(28);
     println!("Part one: {}", part_one_program.registers[2]);
+    println!("Part two: {}", solve_part_two(&program));
 }
 
 #[cfg(test)]
