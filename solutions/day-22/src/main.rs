@@ -1,5 +1,4 @@
 use std::cmp::Ordering;
-use std::collections::hash_map::Entry::*;
 use std::collections::{BinaryHeap, HashMap};
 use std::fmt;
 use std::iter;
@@ -377,10 +376,42 @@ fn reconstruct_states(came_from: &HashMap<State, State>, current: State) -> Vec<
     path
 }
 
+fn print_path(cave: &Cave, states: &[State]) {
+    println!("{}", cave);
+    for state in states.iter() {
+        let mut result = String::new();
+        for (y, row) in cave.regions.iter().enumerate() {
+            for (x, r) in row.iter().enumerate() {
+                let coordinate = (x, y);
+                if coordinate == state.position.as_tuple() {
+                    result.push(match state.equipped_tool {
+                        Tool::ClimbingGear => 'G',
+                        Tool::Torch => 'F',
+                        Tool::Neither => 'n',
+                    });
+                    continue;
+                }
+                if coordinate == (0, 0) {
+                    result.push('M');
+                    continue;
+                }
+                if coordinate == cave.target.as_tuple() {
+                    result.push('T');
+                    continue;
+                }
+                result.push_str(&format!("{}", r));
+            }
+            result.push('\n');
+        }
+        println!("{}", result);
+    }
+}
+
 fn main() {
     let mut cave = Cave::from_input(INPUT);
     println!("{}", cave.calculate_total_risk_level());
     let (states, time) = cave.find_path_to_target();
+    print_path(&cave, &states);
     // println!("{}", cave);
     // for state in states {
     //     println!("{}", state);
@@ -401,6 +432,8 @@ mod test {
     #[test]
     fn it_solves_part_two_correctly() {
         let mut cave = Cave::new(Point::from_tuple((10, 10)), 510);
-        assert_eq!(cave.find_path_to_target().1, 45);
+        let (states, time) = cave.find_path_to_target();
+        assert_eq!(time, 45);
+        print_path(&cave, &states);
     }
 }
