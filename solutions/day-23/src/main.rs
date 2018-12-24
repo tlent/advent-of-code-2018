@@ -11,6 +11,9 @@ struct Point {
 }
 
 impl Point {
+    fn from_tuple((x, y, z): (isize, isize, isize)) -> Self {
+        Self { x, y, z }
+    }
     fn manhattan_distance(&self, b: Self) -> usize {
         let dx = (self.x - b.x).abs() as usize;
         let dy = (self.y - b.y).abs() as usize;
@@ -122,72 +125,26 @@ impl Cube {
 
     fn subdivide(&self) -> Vec<Cube> {
         let size = self.size / 2;
-        vec![
-            Cube {
-                position: Point {
-                    x: self.position.x,
-                    y: self.position.y,
-                    z: self.position.z,
-                },
-                size,
-            },
-            Cube {
-                position: Point {
-                    x: self.position.x,
-                    y: self.position.y,
-                    z: self.position.z + size as isize,
-                },
-                size,
-            },
-            Cube {
-                position: Point {
-                    x: self.position.x,
-                    y: self.position.y + size as isize,
-                    z: self.position.z,
-                },
-                size,
-            },
-            Cube {
-                position: Point {
-                    x: self.position.x,
-                    y: self.position.y + size as isize,
-                    z: self.position.z + size as isize,
-                },
-                size,
-            },
-            Cube {
-                position: Point {
-                    x: self.position.x + size as isize,
-                    y: self.position.y,
-                    z: self.position.z,
-                },
-                size,
-            },
-            Cube {
-                position: Point {
-                    x: self.position.x + size as isize,
-                    y: self.position.y,
-                    z: self.position.z + size as isize,
-                },
-                size,
-            },
-            Cube {
-                position: Point {
-                    x: self.position.x + size as isize,
-                    y: self.position.y + size as isize,
-                    z: self.position.z,
-                },
-                size,
-            },
-            Cube {
-                position: Point {
-                    x: self.position.x + size as isize,
-                    y: self.position.y + size as isize,
-                    z: self.position.z + size as isize,
-                },
-                size,
-            },
+        let Point { x, y, z } = self.position;
+        let shifted_x = x + size as isize;
+        let shifted_y = y + size as isize;
+        let shifted_z = z + size as isize;
+        [
+            (x, y, z),
+            (x, y, shifted_z),
+            (x, shifted_y, z),
+            (x, shifted_y, shifted_z),
+            (shifted_x, y, z),
+            (shifted_x, y, shifted_z),
+            (shifted_x, shifted_y, z),
+            (shifted_x, shifted_y, shifted_z),
         ]
+        .into_iter()
+        .map(|p| Cube {
+            position: Point::from_tuple(*p),
+            size,
+        })
+        .collect()
     }
 }
 
