@@ -1,9 +1,9 @@
-use std::cmp;
+use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
 const INPUT: &str = include_str!("../input");
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 struct Point {
     x: isize,
     y: isize,
@@ -51,7 +51,7 @@ fn solve_part_one(bots: &[Bot]) -> usize {
         .count()
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct Cube {
     position: Point,
     size: usize,
@@ -191,7 +191,7 @@ impl Cube {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct HeapWrapper {
     cube: Cube,
     bot_count: usize,
@@ -205,37 +205,23 @@ impl HeapWrapper {
 }
 
 impl Ord for HeapWrapper {
-    fn cmp(&self, other: &Self) -> cmp::Ordering {
-        (
-            self.bot_count,
-            self.cube.position.manhattan_distance(Point::default()),
-        )
-            .cmp(&(
-                other.bot_count,
-                other.cube.position.manhattan_distance(Point::default()),
-            ))
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.bot_count.cmp(&other.bot_count) {
+            Ordering::Equal => {
+                let other_distance = other.cube.position.manhattan_distance(Point::default());
+                let own_distance = self.cube.position.manhattan_distance(Point::default());
+                other_distance.cmp(&own_distance) // note reversed order
+            }
+            order => order,
+        }
     }
 }
 
 impl PartialOrd for HeapWrapper {
-    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
-
-impl PartialEq for HeapWrapper {
-    fn eq(&self, other: &Self) -> bool {
-        (
-            self.bot_count,
-            self.cube.position.manhattan_distance(Point::default()),
-        ) == (
-            other.bot_count,
-            other.cube.position.manhattan_distance(Point::default()),
-        )
-    }
-}
-
-impl Eq for HeapWrapper {}
 
 fn solve_part_two(bots: &[Bot]) -> usize {
     let initial_cube = Cube::minimum_spanning_cube(bots);
