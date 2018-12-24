@@ -244,7 +244,6 @@ fn solve_part_two(bots: &[Bot]) -> usize {
     while !cubes.is_empty() {
         let HeapWrapper { cube, .. } = cubes.pop().unwrap();
         if cube.size == 0 {
-            // Would need to break ties here for a general solution but there were no ties for my input
             return cube.position.manhattan_distance(Point::default());
         }
         cubes.extend(
