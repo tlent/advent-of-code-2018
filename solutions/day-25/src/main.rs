@@ -1,6 +1,6 @@
 const INPUT: &str = include_str!("../input");
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct FourDimensionalPoint {
     x: isize,
     y: isize,
@@ -42,13 +42,22 @@ fn find_constellations(points: &[FourDimensionalPoint]) -> Vec<Vec<FourDimension
     points.sort_by_key(|p| p.manhattan_distance(&min_point));
     let mut constellations: Vec<Vec<FourDimensionalPoint>> = vec![];
     for &point in points.iter() {
-        let constellation = constellations
+        let (ref indices, ref mut joinable): (Vec<_>, Vec<_>) = constellations
             .iter_mut()
-            .find(|c| c.iter().any(|p| point.manhattan_distance(p) <= 3));
-        if let Some(c) = constellation {
-            c.push(point);
-        } else {
+            .enumerate()
+            .filter(|(_, c)| c.iter().any(|p| point.manhattan_distance(p) <= 3))
+            .unzip();
+        if joinable.is_empty() {
             constellations.push(vec![point]);
+        } else if joinable.len() > 1 {
+            let mut new_constellation = vec![point];
+            new_constellation.extend(joinable.iter().flat_map(|c| c.iter()));
+            for &i in indices.iter().rev() {
+                constellations.remove(i);
+            }
+            constellations.push(new_constellation);
+        } else {
+            joinable[0].push(point);
         }
     }
     constellations
