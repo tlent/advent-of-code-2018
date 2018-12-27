@@ -67,7 +67,7 @@ fn find_door_counts(s: &str) -> HashMap<Position, usize> {
 
 fn solve_part_one(regex: &str) -> usize {
     let door_counts = find_door_counts(&regex[1..regex.len() - 1]);
-    *door_counts.iter().map(|(_, v)| v).max().unwrap()
+    *door_counts.values().max().unwrap()
 }
 
 fn solve_part_two(regex: &str) -> usize {
