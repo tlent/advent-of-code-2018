@@ -1,99 +1,26 @@
+use std::collections::HashMap;
+
 const INPUT: &str = include_str!("../input");
 
-const VERBOSE: bool = false;
-
 fn solve_part_one(regex: &str) -> usize {
-    if VERBOSE {
-        println!("{}", regex);
-    }
-    find_door_count(&regex[1..regex.len() - 1])
+    let door_counts = find_door_counts(&regex[1..regex.len() - 1]);
+    *door_counts.iter().map(|(_, v)| v).max().unwrap()
 }
 
-fn find_door_count(s: &str) -> usize {
-    if !s.contains('(') {
-        if VERBOSE {
-            println!("{}: {}", s, s.len());
-        }
-        return s.len();
-    }
+type Position = (isize, isize);
+
+fn find_door_counts(s: &str) -> HashMap<Position, usize> {
+    let mut door_counts = HashMap::new();
     let mut doors = 0;
-    let mut i = 0;
-    while i < s.len() {
-        let c = s.chars().nth(i).unwrap();
+    for c in s.chars() {
         if c == '(' {
-            let matching_paren_position = i + find_matching_paren_position(&s[i..]);
-            let branch_group = &s[i..=matching_paren_position];
-            if VERBOSE {
-                println!("branching {}", branch_group);
-            }
-            let branch_door_count = find_branch_door_count(branch_group);
-            if VERBOSE {
-                println!("{} branch doors {}", branch_group, branch_door_count);
-            }
-            doors += branch_door_count;
-            i = matching_paren_position + 1;
-            continue;
+            // Count subdoors in array, store subdoors + doors for each position, at | start new subdoors
+            // at ) add max subdoors to doors and continue
+            // but this will not work for multiple subregexes
         }
         doors += 1;
-        i += 1;
     }
-    doors
-}
-
-fn find_branch_door_count(s: &str) -> usize {
-    assert!(s.starts_with('('));
-    assert!(s.ends_with(')'));
-    let branch_door_counts: Vec<_> = split_branch_group(s)
-        .iter()
-        .map(|g| find_door_count(g))
-        .collect();
-    if branch_door_counts.iter().any(|c| *c == 0) {
-        0
-    } else {
-        *branch_door_counts.iter().max().unwrap()
-    }
-}
-
-fn split_branch_group(s: &str) -> Vec<&str> {
-    assert!(s.starts_with('('));
-    assert!(s.ends_with(')'));
-    let mut depth = 0;
-    let mut start = 1;
-    let mut parts = vec![];
-    for (i, c) in s.chars().enumerate() {
-        if c == '(' {
-            depth += 1;
-        }
-        if c == ')' {
-            depth -= 1;
-        }
-        if c == '|' && depth == 1 {
-            parts.push(&s[start..i]);
-            start = i + 1;
-        }
-        if depth == 0 {
-            parts.push(&s[start..i]);
-            break;
-        }
-    }
-    parts
-}
-
-fn find_matching_paren_position(s: &str) -> usize {
-    assert!(s.starts_with('('));
-    let mut depth = 0;
-    for (i, c) in s.chars().enumerate() {
-        if c == '(' {
-            depth += 1;
-        }
-        if c == ')' {
-            depth -= 1;
-        }
-        if depth == 0 {
-            return i;
-        }
-    }
-    panic!("No matching paren found in {}", s);
+    door_counts
 }
 
 fn main() {
