@@ -2,17 +2,9 @@
 name = "advent-of-code-day-1"
 version = "0.1.0"
 authors = ["Thomas Lent <tcl293@gmail.com>"]
-
-[lib]
-name = "day_1"
-path = "src/lib.rs"
+edition = "2018"
 
 [dependencies]
-failure = "0.1.3"
 
 [dev-dependencies]
-criterion = "0.2.5"
 
-[[bench]]
-name = "find_repeat_result_bench"
-harness = false
