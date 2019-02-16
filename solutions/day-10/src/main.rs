@@ -19,7 +19,7 @@ fn main() -> Result<()> {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Point {
+struct Point {
     position: (i32, i32),
     velocity: (i32, i32),
 }
@@ -49,7 +49,7 @@ impl Point {
     }
 }
 
-pub fn parse_input(input: &str) -> Result<Vec<Point>> {
+fn parse_input(input: &str) -> Result<Vec<Point>> {
     input
         .trim()
         .split('\n')
@@ -64,7 +64,7 @@ pub fn parse_input(input: &str) -> Result<Vec<Point>> {
         .collect()
 }
 
-pub fn solve(points: &[Point]) -> (String, u32) {
+fn solve(points: &[Point]) -> (String, u32) {
     let mut points = points.to_owned();
     for step in 0..=MAX_STEPS {
         if points.iter().all(|p| p.has_neighbor_in(&points)) {
