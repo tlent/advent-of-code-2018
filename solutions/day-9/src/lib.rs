@@ -1,15 +1,16 @@
 use std::collections::VecDeque;
-use std::error::Error;
 
-pub fn parse_input(input: &str) -> Result<(usize, u32), Box<dyn Error>> {
+pub type Result<T> = ::std::result::Result<T, Box<dyn ::std::error::Error>>;
+
+pub fn parse_input(input: &str) -> Result<(usize, u32)> {
     let split_input: Vec<_> = input.trim().split_whitespace().collect();
     let players = match split_input.get(0) {
         Some(c) => c.parse()?,
-        None => return Err("No player count found in input".into()),
+        None => return Err(Box::from("No player count found in input")),
     };
     let last_marble = match split_input.get(6) {
         Some(c) => c.parse()?,
-        None => return Err("No last marble value found in input".into()),
+        None => return Err(Box::from("No last marble value found in input")),
     };
     Ok((players, last_marble))
 }
@@ -120,11 +121,11 @@ mod tests {
         (21, 6111),
         (30, 5807),
     ];
-    const PART_ONE_SAMPLE_SOLUTIONS: [u32; 6] = [32, 8317, 146373, 2764, 54718, 37305];
+    const PART_ONE_SAMPLE_SOLUTIONS: [u32; 6] = [32, 8317, 146_373, 2764, 54718, 37305];
     const PART_ONE_INPUT: (usize, u32) = (412, 71646);
     const PART_TWO_INPUT: (usize, u32) = (PART_ONE_INPUT.0, PART_ONE_INPUT.1 * 100);
-    const PART_ONE_SOLUTION: u32 = 439635;
-    const PART_TWO_SOLUTION: u32 = 3562722971;
+    const PART_ONE_SOLUTION: u32 = 439_635;
+    const PART_TWO_SOLUTION: u32 = 3_562_722_971;
 
     #[test]
     fn it_parses_input_correctly() {
