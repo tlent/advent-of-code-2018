@@ -171,37 +171,37 @@ mod tests {
                 guard_number: 10,
                 start_minute: 5,
                 end_minute: 25,
-                date: "1518-11-01".to_owned(),
+                date: String::from("1518-11-01"),
             },
             SleepRecord {
                 guard_number: 10,
                 start_minute: 30,
                 end_minute: 55,
-                date: "1518-11-01".to_owned(),
+                date: String::from("1518-11-01"),
             },
             SleepRecord {
                 guard_number: 99,
                 start_minute: 40,
                 end_minute: 50,
-                date: "1518-11-02".to_owned(),
+                date: String::from("1518-11-02"),
             },
             SleepRecord {
                 guard_number: 10,
                 start_minute: 24,
                 end_minute: 29,
-                date: "1518-11-03".to_owned(),
+                date: String::from("1518-11-03"),
             },
             SleepRecord {
                 guard_number: 99,
                 start_minute: 36,
                 end_minute: 46,
-                date: "1518-11-04".to_owned(),
+                date: String::from("1518-11-04"),
             },
             SleepRecord {
                 guard_number: 99,
                 start_minute: 45,
                 end_minute: 55,
-                date: "1518-11-05".to_owned(),
+                date: String::from("1518-11-05"),
             },
         ]
     }

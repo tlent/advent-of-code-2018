@@ -65,7 +65,7 @@ fn parse_input(input: &str) -> Result<Vec<Point>> {
 }
 
 fn solve(points: &[Point]) -> (String, u32) {
-    let mut points = points.to_owned();
+    let mut points = points.to_vec();
     for step in 0..=MAX_STEPS {
         if points.iter().all(|p| p.has_neighbor_in(&points)) {
             return (points_to_str(&points), step);

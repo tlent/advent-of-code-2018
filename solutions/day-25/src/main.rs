@@ -37,7 +37,7 @@ impl FourDimensionalPoint {
 }
 
 fn find_constellations(points: &[FourDimensionalPoint]) -> Vec<Vec<FourDimensionalPoint>> {
-    let mut points = points.to_owned();
+    let mut points = points.to_vec();
     let min_point = *points.iter().min_by_key(|p| p.x + p.y + p.z + p.t).unwrap();
     points.sort_by_key(|p| p.manhattan_distance(&min_point));
     let mut constellations: Vec<Vec<FourDimensionalPoint>> = vec![];
