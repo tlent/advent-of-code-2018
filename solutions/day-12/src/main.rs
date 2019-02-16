@@ -15,20 +15,17 @@ fn parse_input(input: &str) -> (Vec<u32>, Vec<u8>) {
     let rules = lines
         .filter(|line| line.chars().nth(9).unwrap() == '#')
         .map(|line| {
-            line.chars().take(5).map(|c| c == '#').fold(0, |acc, b| {
-                if b {
-                    return acc * 2 + 1;
-                }
-                acc * 2
-            })
+            line.chars()
+                .take(5)
+                .fold(0, |acc, c| acc * 2 + if c == '#' { 1 } else { 0 })
         })
         .collect();
     (initial_state, rules)
 }
 
 fn solve(initial_state: &[u32], rules: &[u8], generations: usize) -> i64 {
-    let mut prev_state: Vec<_> = initial_state.iter().map(|&x| x as i64).collect();
-    let mut rules = rules.to_owned();
+    let mut prev_state: Vec<_> = initial_state.iter().map(|&x| i64::from(x)).collect();
+    let mut rules = rules.to_vec();
     rules.sort();
     for current_gen in 1..=generations {
         let mut new_state = vec![];
@@ -92,7 +89,7 @@ mod test {
         let (initial_state, rules) = parse_input(INPUT);
         assert_eq!(
             solve(&initial_state, &rules, PART_TWO_GENERATIONS),
-            4900000001793
+            4_900_000_001_793
         );
     }
 
