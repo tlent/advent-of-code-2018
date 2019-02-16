@@ -11,17 +11,18 @@ pub fn parse_input(input: &str) -> &str {
 }
 
 pub fn find_part_one_solution(polymer: &str) -> usize {
-    let final_polymer = fully_react_polymer(polymer);
-    final_polymer.len()
+    fully_react_polymer(polymer).len()
 }
 
 pub fn find_part_two_solution(polymer: &str) -> usize {
     (b'a'..b'z')
         .map(|removed_unit| {
-            fully_react_polymer(
-                &polymer.replace(|c: char| c.to_ascii_lowercase() == removed_unit as char, ""),
-            )
-            .len()
+            let remaining_units = polymer
+                .bytes()
+                .filter(|b| b.to_ascii_lowercase() != removed_unit)
+                .collect();
+            let edited_polymer = String::from_utf8(remaining_units).unwrap();
+            fully_react_polymer(&edited_polymer).len()
         })
         .min()
         .unwrap()
