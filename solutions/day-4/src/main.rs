@@ -19,11 +19,11 @@ fn main() {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct SleepRecord {
-    pub guard_number: u32,
-    pub start_minute: u8,
-    pub end_minute: u8,
-    pub date: String,
+struct SleepRecord {
+    guard_number: u32,
+    start_minute: u8,
+    end_minute: u8,
+    date: String,
 }
 
 // Will not panic as long as:
@@ -35,7 +35,7 @@ pub struct SleepRecord {
 //    fall asleep a second time without first waking up)
 //
 // out of order wakes up messages (when ordered by date) will be silently ignored
-pub fn parse_input(input: &str) -> Vec<SleepRecord> {
+fn parse_input(input: &str) -> Vec<SleepRecord> {
     let mut input_lines: Vec<_> = input.lines().collect();
     input_lines.sort();
     let line_pairs = input_lines.iter().zip(input_lines.iter().skip(1));
@@ -108,13 +108,13 @@ fn find_most_common_sleep_minute_for_guard(
         .unwrap()
 }
 
-pub fn find_part_one_solution(records: &[SleepRecord]) -> u32 {
+fn find_part_one_solution(records: &[SleepRecord]) -> u32 {
     let guard_number = find_guard_with_most_slept_minutes(records);
     let (minute, _) = find_most_common_sleep_minute_for_guard(records, guard_number);
     u32::from(minute) * guard_number
 }
 
-pub fn find_part_two_solution(records: &[SleepRecord]) -> u32 {
+fn find_part_two_solution(records: &[SleepRecord]) -> u32 {
     let guard_numbers: HashSet<_> = records.iter().map(|r| r.guard_number).collect();
     let (guard_number, most_common_minute, _) = guard_numbers
         .iter()

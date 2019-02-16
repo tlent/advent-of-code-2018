@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-pub const INPUT: &str = include_str!("../input");
+const INPUT: &str = include_str!("../input");
 
 fn main() {
     let ids = parse_input(INPUT);
@@ -10,11 +10,11 @@ fn main() {
     println!("{}", result);
 }
 
-pub fn parse_input(input: &str) -> Vec<&str> {
+fn parse_input(input: &str) -> Vec<&str> {
     input.split_whitespace().collect()
 }
 
-pub fn calculate_checksum(ids: &[&str]) -> i32 {
+fn calculate_checksum(ids: &[&str]) -> i32 {
     let (two_duplicate_count, three_duplicate_count) = ids.iter().fold((0, 0), |acc, id| {
         let character_counts = id.chars().fold(HashMap::new(), |mut counts, c| {
             *counts.entry(c).or_insert(0) += 1;
@@ -32,7 +32,7 @@ pub fn calculate_checksum(ids: &[&str]) -> i32 {
     two_duplicate_count * three_duplicate_count
 }
 
-pub fn find_similar_id_match(ids: &[&str]) -> String {
+fn find_similar_id_match(ids: &[&str]) -> String {
     for (index, id_a) in ids.iter().enumerate() {
         for id_b in ids.iter().skip(index) {
             if has_one_char_difference(id_a, id_b) {
@@ -59,7 +59,7 @@ fn to_string_of_matching_chars(a: &str, b: &str) -> String {
 mod with_cartesian {
     use super::*;
 
-    pub fn find_similar_id_match(ids: &[&str]) -> String {
+    fn find_similar_id_match(ids: &[&str]) -> String {
         let mut ids_cartesian_product = cartesian_product(ids.iter(), ids.iter());
         let (id_a, id_b) = ids_cartesian_product
             .find(|(id_a, id_b)| has_one_char_difference(id_a, id_b))

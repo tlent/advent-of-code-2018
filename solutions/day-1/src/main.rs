@@ -22,7 +22,7 @@ fn sum(numbers: &[i32]) -> i32 {
     numbers.iter().sum()
 }
 
-pub fn find_repeat_result(numbers: &[i32]) -> i32 {
+fn find_repeat_result(numbers: &[i32]) -> i32 {
     let mut past_results = HashSet::new();
     let mut result = 0;
     past_results.insert(result);

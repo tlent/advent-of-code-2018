@@ -6,15 +6,15 @@ fn main() {
     println!("{}", find_part_two_solution(parsed_input));
 }
 
-pub fn parse_input(input: &str) -> &str {
+fn parse_input(input: &str) -> &str {
     input.trim()
 }
 
-pub fn find_part_one_solution(polymer: &str) -> usize {
+fn find_part_one_solution(polymer: &str) -> usize {
     fully_react_polymer(polymer).len()
 }
 
-pub fn find_part_two_solution(polymer: &str) -> usize {
+fn find_part_two_solution(polymer: &str) -> usize {
     (b'a'..b'z')
         .map(|removed_unit| {
             let remaining_units = polymer

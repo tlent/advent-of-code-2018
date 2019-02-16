@@ -14,7 +14,7 @@ fn main() {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Graph<T>
+struct Graph<T>
 where
     T: Eq + Hash,
 {
@@ -39,7 +39,7 @@ where
     }
 }
 
-pub fn parse_input(input: &str) -> Graph<char> {
+fn parse_input(input: &str) -> Graph<char> {
     let edges: Vec<(char, char)> = input
         .trim()
         .split('\n')
@@ -54,7 +54,7 @@ pub fn parse_input(input: &str) -> Graph<char> {
 }
 
 // Kahn's algorithm for topological sort
-pub fn solve_part_one(g: &Graph<char>) -> String {
+fn solve_part_one(g: &Graph<char>) -> String {
     let steps = &g.nodes;
     let mut result = String::new();
     let mut remaining_requirements = g.edges.clone();
@@ -94,7 +94,7 @@ pub fn solve_part_one(g: &Graph<char>) -> String {
     result
 }
 
-pub fn solve_part_two(g: &Graph<char>, worker_count: usize, base_time: u32) -> u32 {
+fn solve_part_two(g: &Graph<char>, worker_count: usize, base_time: u32) -> u32 {
     let steps = &g.nodes;
     let mut time_passed = 0;
     let mut workers: Vec<Option<(char, u32)>> = vec![None; worker_count];

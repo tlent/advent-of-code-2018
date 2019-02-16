@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::collections::HashMap;
 
-pub const INPUT: &str = include_str!("../input");
+const INPUT: &str = include_str!("../input");
 const PARSE_REGEX: &str = r"#(\d+) @ (\d+),(\d+): (\d+)x(\d+)";
 
 fn main() {
@@ -10,7 +10,7 @@ fn main() {
     println!("{}", find_fabric_claim_with_no_overlap(&parsed_input).id);
 }
 
-pub fn parse_input(input: &str) -> Vec<FabricClaim> {
+fn parse_input(input: &str) -> Vec<FabricClaim> {
     let re = Regex::new(PARSE_REGEX).unwrap();
     re.captures_iter(input)
         .map(|capture| FabricClaim {
@@ -26,27 +26,27 @@ pub fn parse_input(input: &str) -> Vec<FabricClaim> {
 }
 
 #[derive(PartialEq, Debug, Clone)]
-pub struct FabricClaim {
-    pub id: u32,
-    pub coordinates: Point,
-    pub width: u32,
-    pub height: u32,
+struct FabricClaim {
+    id: u32,
+    coordinates: Point,
+    width: u32,
+    height: u32,
 }
 
 #[derive(Eq, PartialEq, Hash, Debug, Clone)]
-pub struct Point {
-    pub x: u32,
-    pub y: u32,
+struct Point {
+    x: u32,
+    y: u32,
 }
 
-pub fn count_overlapping_fabric_claim_units(claims: &[FabricClaim]) -> usize {
+fn count_overlapping_fabric_claim_units(claims: &[FabricClaim]) -> usize {
     get_claim_count_by_coordinate_map(claims)
         .values()
         .filter(|value| **value > 1)
         .count()
 }
 
-pub fn find_fabric_claim_with_no_overlap(claims: &[FabricClaim]) -> &FabricClaim {
+fn find_fabric_claim_with_no_overlap(claims: &[FabricClaim]) -> &FabricClaim {
     let claim_count_by_coordinate = get_claim_count_by_coordinate_map(claims);
     &claims
         .iter()

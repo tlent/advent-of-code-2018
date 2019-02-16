@@ -17,7 +17,7 @@ fn main() -> Result<()> {
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
-pub struct Point {
+struct Point {
     x: usize,
     y: usize,
 }
@@ -39,12 +39,12 @@ impl Point {
 }
 
 #[derive(Debug)]
-pub struct GridCoordinate {
+struct GridCoordinate {
     id: usize,
     point: Point,
 }
 
-pub struct Grid {
+struct Grid {
     data: Vec<Vec<Option<usize>>>,
     x_offset: usize,
     y_offset: usize,
@@ -223,7 +223,7 @@ trait MinByStrictExt: Iterator {
 
 impl<I: Iterator> MinByStrictExt for I {}
 
-pub fn parse_input(input: &str) -> Result<Vec<Point>> {
+fn parse_input(input: &str) -> Result<Vec<Point>> {
     input
         .trim()
         .split('\n')
@@ -243,7 +243,7 @@ pub fn parse_input(input: &str) -> Result<Vec<Point>> {
         .collect()
 }
 
-pub fn find_part_one_solution(points: &[Point]) -> usize {
+fn find_part_one_solution(points: &[Point]) -> usize {
     let mut grid = Grid::from_points(points);
     grid.fill_areas();
     grid.coordinates
@@ -254,7 +254,7 @@ pub fn find_part_one_solution(points: &[Point]) -> usize {
         .expect("No solution found")
 }
 
-pub fn find_part_two_solution(points: &[Point], max_distance: usize) -> usize {
+fn find_part_two_solution(points: &[Point], max_distance: usize) -> usize {
     let grid = Grid::from_points(points);
     grid.count_points_with_max_total_coordinate_distance(max_distance)
 }
