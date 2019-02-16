@@ -4,8 +4,4 @@ version = "0.1.0"
 authors = ["Thomas Lent <tcl293@gmail.com>"]
 edition = "2018"
 
-[lib]
-name = "day_7"
-path = "src/lib.rs"
-
 [dependencies]
